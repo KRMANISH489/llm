@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini-GPT Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg0: #0c1210;
+      --bg1: #14201a;
+      --ink: #e8f2ec;
+      --muted: #8aa396;
+      --accent: #3ecf8e;
+      --accent2: #f0b429;
+      --line: rgba(232, 242, 236, 0.12);
+      --bubble: rgba(255,255,255,0.04);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "DM Sans", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 500px at 10% -10%, rgba(62,207,142,0.18), transparent 55%),
+        radial-gradient(700px 400px at 100% 0%, rgba(240,180,41,0.12), transparent 50%),
+        linear-gradient(160deg, var(--bg0), var(--bg1));
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(760px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(12,18,16,0.72);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+    }
+    header {
+      padding: 22px 24px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    #status {
+      margin-top: 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--accent2);
+    }
+    #log {
+      height: 420px;
+      overflow-y: auto;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .msg {
+      max-width: 85%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--bubble);
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      line-height: 1.45;
+      animation: rise 0.25s ease;
+    }
+    .msg.user { align-self: flex-end; border-color: rgba(62,207,142,0.35); }
+    .msg.bot { align-self: flex-start; }
+    .msg .who {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+    }
+    input, button, select {
+      font: inherit;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--ink);
+      padding: 12px 14px;
+    }
+    input:focus, select:focus { outline: 2px solid rgba(62,207,142,0.35); }
+    button {
+      background: linear-gradient(135deg, var(--accent), #2aa86f);
+      color: #04140c;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      min-width: 96px;
+    }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 0 16px 14px;
+    }
+    .controls label {
+      display: grid;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <h1>Mini-GPT</h1>
+      <p>Local decoder-only Transformer — train, generate, chat.</p>
+      <div id="status">checking model…</div>
+    </header>
+    <div id="log"></div>
+    <div class="controls">
+      <label>Temperature
+        <input id="temp" type="number" min="0.1" max="2" step="0.1" value="0.8" />
+      </label>
+      <label>Top-k
+        <input id="topk" type="number" min="0" max="200" step="1" value="50" />
+      </label>
+      <label>Tokens
+        <input id="tokens" type="number" min="16" max="512" step="1" value="160" />
+      </label>
+    </div>
+    <form id="f">
+      <input id="q" placeholder="Type a message…" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script>
+    const log = document.getElementById("log");
+    const status = document.getElementById("status");
+    let history = "";
+
+    function add(who, text) {
+      const el = document.createElement("div");
+      el.className = "msg " + (who === "You" ? "user" : "bot");
+      el.innerHTML = `<span class="who">${who}</span>${text.replace(/</g,"&lt;")}`;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function health() {
+      try {
+        const r = await fetch("/api/health");
+        const j = await r.json();
+        status.textContent = j.ok
+          ? `ready · device ${j.device}`
+          : (j.error || "model unavailable");
+      } catch {
+        status.textContent = "server offline";
+      }
+    }
+    health();
+
+    document.getElementById("f").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const q = document.getElementById("q");
+      const msg = q.value.trim();
+      if (!msg) return;
+      add("You", msg);
+      q.value = "";
+      const btn = e.target.querySelector("button");
+      btn.disabled = true;
+      try {
+        const r = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: msg,
+            history,
+            temperature: +document.getElementById("temp").value,
+            top_k: +document.getElementById("topk").value,
+            max_new_tokens: +document.getElementById("tokens").value,
+          }),
+        });
+        const j = await r.json();
+        if (j.error) add("Bot", j.error);
+        else {
+          add("Bot", j.reply);
+          history = j.history;
+        }
+      } catch (err) {
+        add("Bot", String(err));
+      } finally {
+        btn.disabled = false;
+        q.focus();
+      }
+    });
+  </script>
+</body>
+</html>

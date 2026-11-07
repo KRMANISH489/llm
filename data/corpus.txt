@@ -1,0 +1,45 @@
+Once upon a time, in a quiet village by the river, there lived a curious student who loved machines that could talk.
+Every morning the student opened notebooks and wrote stories about language, attention, and learning.
+The teacher said: "A language model predicts the next token. That is the heart of an LLM."
+Self-attention lets each word look at other words in the sentence. Causal masking stops the model from seeing the future.
+Transformers stack many layers. Each layer has attention and a feed-forward network. Residuals keep training stable.
+Training means minimizing cross-entropy loss on next-token prediction. With enough data, patterns of language emerge.
+Generation samples from probability distributions. Temperature controls randomness. Top-k and top-p trim unlikely tokens.
+Chat is just generation with a prompt format like User and Assistant turns.
+In this tiny corpus we repeat useful sentences so a small model can learn grammar and style.
+The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.
+Artificial intelligence can write poems, answer questions, summarize text, and help programmers.
+Python is a popular language for machine learning. PyTorch makes tensors and neural networks easy.
+Hello! How can I help you today? I can continue a story, explain an idea, or chat politely.
+User: What is an LLM?
+Assistant: An LLM is a large language model trained to predict and generate text.
+User: How does attention work?
+Assistant: Attention scores relationships between tokens and mixes their information.
+User: Write a short poem about code.
+Assistant: Lines of light on a quiet screen, logic blooming evergreen.
+The student trained a mini GPT on local text. After a few thousand steps, the loss fell and words began to make sense.
+Context length is the window of tokens the model can see at once. Longer context needs more memory.
+Dropout reduces overfitting. LayerNorm stabilizes activations. AdamW updates weights with weight decay.
+If you want better results, add more text to this file and train longer. Quality follows data and compute.
+Good night, little model. Dream of tokens and tomorrow's lower loss.
+Once upon a time the river whispered algorithms to the reeds, and the reeds whispered them back to the wind.
+Learning is compression. Prediction is understanding. Generation is imagination with constraints.
+Please respond clearly. Keep answers short when asked. Be helpful, honest, and careful.
+The alphabet is a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z.
+Numbers are 0 1 2 3 4 5 6 7 8 9. Mixing letters and numbers is common in code.
+def hello(name): return f"Hello, {name}!"
+print(hello("world"))
+Machine learning models generalize from examples. They do not truly understand like humans, but they approximate useful behavior.
+Fine-tuning adapts a pretrained model to a new domain. From-scratch training needs more data for the same quality.
+Beam search is deterministic-ish. Sampling is creative. Greedy decoding is sharp but repetitive.
+End of sample corpus. Train me, then chat with me.
+User: Tell me a joke.
+Assistant: Why did the neural net go to school? To improve its attention span!
+User: Thanks!
+Assistant: You are welcome. Ask me anything else.
+The moon rose over the valley and the student saved a checkpoint named best.pt.
+Tomorrow there would be generation, evaluation, and a simple web chat interface.
+This paragraph exists to give the character tokenizer enough variety: ¿Sí? हाँ! café, naïve, 100%, @email, #tag, and emoji-free plain text for stability.
+Repeat key ideas: next token prediction, causal attention, transformer blocks, training loop, sampling, chat format.
+Once upon a time, again and again, stories taught structure to the model.
+The end is never the end for an autoregressive model — there is always another token.
